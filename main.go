@@ -2,73 +2,39 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"text/template"
+	"os"
+	"os/user"
 
 	"github.com/julienschmidt/httprouter"
 )
 
-type Page struct {
-	Title string
-	Body  []byte
-}
-
-func open(title string) (*Page, error) {
-	filename := title + ".txt"
-	filebytes, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return &Page{Title: title, Body: filebytes}, err
-}
-
-func (p *Page) save() error {
-	filename := p.Title + ".txt"
-	//	for _, val := range p.Body {
-	//		fmt.Println(val)
-	//	}
-	return ioutil.WriteFile(filename, p.Body, 0600)
-}
-
-func defaultPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	path := r.URL.Path[1:]
-	fmt.Fprintf(w, "Welcome to the %q page.", path)
-	outputstring := fmt.Sprintf("Welcome to the %q page.", path)
-	page := &Page{Title: path, Body: []byte(outputstring)}
-	err := page.save()
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func getLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Println("Method (GET/POST): ", r.Method)
-	tmpl, err := template.ParseFiles("login.gtpl")
-	if err != nil {
-		fmt.Println("Could not load login template.")
-		log.Fatal(err)
-	}
-	tmpl.Execute(w, nil)
-}
-
-func postLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Println("Method (GET/POST): ", r.Method)
-	r.ParseForm()
-	if r.Form["username"][0] == "" {
-		fmt.Fprint(w, "Please enter a username.")
-	} else {
-		fmt.Println("username: ", r.PostForm["username"])
-		fmt.Println("password: ", r.PostForm["password"])
-	}
-}
-
 func main() {
+	// Get user's home directory
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Assign the location for the go-chat logs
+	// TODO: Allow an XML/YAML/JSON file to be parsed for this data
+	var logpath string = usr.HomeDir + "/.go-chat/log"
+	// Check if logpath exists
+	_, err = os.Stat(logpath)
+	if err != nil {
+		// TODO: Add this to "syslog" file
+		fmt.Println("go-chat log path doesn't exist... Creating it at: ", logpath)
+		os.MkdirAll(logpath, 660)
+	}
+	// Used by other parts of go-chat
+	os.Setenv("LOGPATH", logpath)
+
 	router := httprouter.New()
-	router.GET("/", defaultPage)
 	router.GET("/login", getLogin)
 	router.POST("/login", postLogin)
+	router.GET("/c/:channel", loadChannel)
+	router.GET("/", loadRoot)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
