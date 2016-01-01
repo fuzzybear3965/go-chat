@@ -3,14 +3,13 @@ package main
 import (
 	"fmt"
 	"github.com/fuzzybear3965/go-chat/static"
-	//"html/template"
+	"github.com/julienschmidt/httprouter"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/julienschmidt/httprouter"
 )
 
 type channelInfo struct {
@@ -21,8 +20,8 @@ type channelInfo struct {
 
 // Create a struct to hold the JS and CSS templates
 type templateScripts struct {
-	ChannelTmplJS  string
-	ChannelTmplCSS string
+	ChannelTmplJS  template.JS
+	ChannelTmplCSS template.CSS
 }
 
 // Open the channel log and return the a channelInfo object
@@ -43,19 +42,18 @@ func getChannelInfo(urlpath string, routerparams httprouter.Params) *channelInfo
 	if os.IsNotExist(err) {
 		fmt.Println(channelName, "is a new channel. Making the following file:", logPath)
 		if fh, err := os.Create(logPath); err != nil {
-			fmt.Println("Could not create file ", logPath, " when trying to create it because it doesn't exist.")
+			fmt.Println("Could not create file", logPath, "(trying to create it because it doesn't exist).")
 			log.Fatal(err)
 		} else {
-			fh.Write([]byte("History"))
 			if _, err := fh.Stat(); err != nil {
 				fmt.Println("Could not get file info.")
 				log.Fatal(err)
 			} else {
 				if err := os.Chmod(logPath, 660); err != nil {
-					fmt.Println("Could not change permissions for file ", logPath)
+					fmt.Println("Could not change permissions for file", logPath)
 				}
 				if err := fh.Close(); err != nil {
-					fmt.Println("Could not close the file for channel ", channelName, ": ", logPath)
+					fmt.Println("Could not close the file for channel", channelName, ":", logPath)
 					log.Fatal(err)
 				}
 			}
@@ -94,8 +92,6 @@ func loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Param
 		scriptTemplate,
 	}
 
-	fmt.Println("CSS is: ", data.Template.ChannelTmplCSS)
-
 	static.ChannelTemplate.Execute(w, data)
 }
 
@@ -105,29 +101,40 @@ func saveChannel(w http.ResponseWriter, r *http.Request, params httprouter.Param
 	// Otherwise we'll keep the unsaved data in a <chan string>.
 	ci := getChannelInfo(r.URL.Path, params)
 
-	fmt.Println("The state of channel", ci.ChannelName, "is going to be saved.")
-
 	// Get set data, if any
 	r.ParseForm()
 	// Get the message sent
 	msgStringSlice := r.Form["message"]
-	// Prepare to cenvert []string to -> []byte
-	var msgBytes []byte = ci.Body
-	// Add a new line to separate this message from other messages.
-	msgBytes = append(msgBytes, '\n')
-	for _, val := range msgStringSlice {
-		msgBytes = append(msgBytes, []byte(val)...)
-	}
 
-	ci.Body = msgBytes
-
-	err := ci.channelLogSave()
-
-	if err != nil {
-		fmt.Println("Problem saving channel ", ci.ChannelName)
-		log.Fatal(err)
+	if len(msgStringSlice[0]) == 0 {
+		fmt.Println("Null message. Nothing being done.")
 	} else {
-		fmt.Println("Saved the state of channel", ci.ChannelName, "just fine.")
+		// Prepare to convert msgStringSlice []string to -> []byte
+		var msgBytes []byte = ci.Body
+		// Ensure Body is non-empty.
+		if len(msgBytes) != 0 {
+			// Add a new line to separate this message from other messages.
+			msgBytes = append(msgBytes, '\n')
+		} else {
+			fmt.Println("This is the first line!")
+		}
+
+		for _, val := range msgStringSlice {
+			msgBytes = append(msgBytes, []byte(val)...)
+		}
+
+		fmt.Println("The state of channel", ci.ChannelName, "is going to be saved.")
+
+		ci.Body = msgBytes
+
+		err := ci.channelLogSave()
+
+		if err != nil {
+			fmt.Println("Problem saving channel ", ci.ChannelName)
+			log.Fatal(err)
+		} else {
+			fmt.Println("Saved the state of channel", ci.ChannelName, "just fine.")
+		}
 	}
 	// Reload the channel for the user.
 	loadChannel(w, r, params)

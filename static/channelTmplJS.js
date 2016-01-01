@@ -14,3 +14,7 @@ function keyPress(e) {
         return;
     }
 }
+
+function setFocusToTextBox(){
+    document.getElementById("messageArea").focus();
+}
