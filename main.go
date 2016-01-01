@@ -1,3 +1,11 @@
+//go:generate -command asset go run asset.go
+// Generate assets for current directory.
+//go:generate asset channelTemplate.html.tmpl
+//go:generate asset login.html.tmpl
+// Generate static/ assets
+//go:generate asset static/channelTmplCSS.css
+//go:generate asset static/channelTmplJS.js
+
 package main
 
 import (
@@ -34,6 +42,9 @@ func main() {
 	router.GET("/login", getLogin)
 	router.POST("/login", postLogin)
 	router.GET("/c/:channel", loadChannel)
+	router.POST("/c/:channel", saveChannel)
+	// Add js, css handler
+	router.ServeFiles("/static/*filepath", http.Dir(""))
 	router.GET("/", loadRoot)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
