@@ -1,0 +1,23 @@
+<html>
+    <head>
+        <style>
+            {{.Template.ChannelTmplCSS}}
+        </style>
+    </head>
+    <body>
+        <h1>Welcome to the {{printf "%s" .Channel.ChannelName}} channel!</h1>
+        <p> Go ahead and start chatting below. </p>
+        <p>CSS Data : {{.Template.ChannelTmplCSS}} </p>
+
+        <form action="/c/{{.Channel.ChannelName}}" method="POST" id="chatForm">
+            <textarea name="message" id="messageArea" rows="5" cols="40"></textarea>
+            <input type="submit" value="Submit">
+        </form>
+
+        <pre> {{printf "%s" .Channel.Body}} </pre>
+    </body>
+
+    <script>
+        {{.Template.ChannelTmplJS}}
+    </script>
+</html>

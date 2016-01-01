@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/fuzzybear3965/go-chat/static"
-	//	"html/template"
+	"github.com/fuzzybear3965/go-chat/static"
+	//"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -17,6 +17,12 @@ type channelInfo struct {
 	ChannelName string
 	Body        []byte
 	LogPath     string
+}
+
+// Create a struct to hold the JS and CSS templates
+type templateScripts struct {
+	ChannelTmplJS  string
+	ChannelTmplCSS string
 }
 
 // Open the channel log and return the a channelInfo object
@@ -73,18 +79,24 @@ func (p *channelInfo) channelLogSave() error {
 func loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	// Get the complete URL path into an array
 	ci := getChannelInfo(r.URL.Path, params)
+	scriptTemplate := &templateScripts{
+		ChannelTmplJS:  static.ChannelTmplJS,
+		ChannelTmplCSS: static.ChannelTmplCSS,
+	}
 
 	fmt.Println("Channel", ci.ChannelName, "has been requested.")
 
-	// Read template for the chat page.
-	t := channelTemplate
-	//if err != nil {
-	//	// TODO: Add the below to a log file.
-	//	fmt.Println("Could not read the channel template.")
-	//	log.Fatal(err)
-	//}
+	data := struct {
+		Channel  *channelInfo
+		Template *templateScripts
+	}{
+		ci,
+		scriptTemplate,
+	}
 
-	t.Execute(w, ci)
+	fmt.Println("CSS is: ", data.Template.ChannelTmplCSS)
+
+	static.ChannelTemplate.Execute(w, data)
 }
 
 func saveChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {

@@ -1,10 +1,10 @@
 //go:generate -command asset go run asset.go
 // Generate assets for current directory.
-//go:generate asset channelTemplate.html.tmpl
-//go:generate asset login.html.tmpl
 // Generate static/ assets
-//go:generate asset static/channelTmplCSS.css
-//go:generate asset static/channelTmplJS.js
+//go:generate asset static/ChannelTemplate.html.tmpl
+//go:generate asset static/login.html.tmpl
+//go:generate asset static/ChannelTmplCSS.css
+//go:generate asset static/ChannelTmplJS.js
 
 package main
 

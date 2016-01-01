@@ -2,6 +2,6 @@
 
 package static
 
-var channelTmplCSS = css(asset{Name: "channelTmplCSS.css", Content: "" +
-	"pre {\r\n    font-size: 10px;\r\n}\r\n" +
-	"", etag: `"BbHdFUm3NFQ="`})
+var ChannelTmplCSS = css(asset{Name: "ChannelTmplCSS.css", Content: "" +
+	"pre {\n    font-size: 20px;\n}\n" +
+	"", etag: `"LYqT5dS/+t4="`})
