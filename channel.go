@@ -14,7 +14,6 @@ import (
 
 type channelInfo struct {
 	ChannelName string
-	Body        []byte
 	LogPath     string
 }
 
@@ -22,6 +21,19 @@ type channelInfo struct {
 type templateScripts struct {
 	ChannelTmplJS  template.JS
 	ChannelTmplCSS template.CSS
+}
+
+type messageContainer struct {
+	message string
+}
+
+// return the history of the channel at any time for the user
+func getLog(ci *channelInfo) *messageContainer {
+	bytes, err := ioutil.ReadFile(ci.LogPath)
+	if err != nil {
+		fmt.Println("Could not read", ci.LogPath)
+	}
+	return &messageContainer{string(bytes)}
 }
 
 // Open the channel log and return the a channelInfo object
@@ -60,18 +72,19 @@ func getChannelInfo(urlpath string, routerparams httprouter.Params) *channelInfo
 		}
 	}
 
-	logbytes, err := ioutil.ReadFile(logPath)
-	if err != nil {
-		fmt.Println("Could not get channel info.")
-		log.Fatal(err)
-		return nil
-	}
-	return &channelInfo{ChannelName: channelName, Body: logbytes, LogPath: logPath}
+	return &channelInfo{ChannelName: channelName, LogPath: logPath}
 }
 
-func (p *channelInfo) channelLogSave() error {
-	fmt.Println("Saving the channel", p.ChannelName, "log file to", p.LogPath, ".")
-	return ioutil.WriteFile(p.LogPath, p.Body, 0600)
+func saveMessage(mc *messageContainer, ci *channelInfo) error {
+	fmt.Println("Saving the message to the log file", ci.LogPath, ".")
+	fh, err := os.OpenFile(ci.LogPath, os.O_APPEND|os.O_WRONLY, 0660)
+	defer fh.Close()
+	if err != nil {
+		fmt.Println("Could not open logfile/history located at:", ci.LogPath)
+		log.Fatal(err)
+	}
+	_, err = fh.WriteString(mc.message + string('\n'))
+	return err
 }
 
 func loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
@@ -84,12 +97,15 @@ func loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Param
 
 	fmt.Println("Channel", ci.ChannelName, "has been requested.")
 
+	log := getLog(ci)
 	data := struct {
-		Channel  *channelInfo
-		Template *templateScripts
+		ChannelName string
+		ChannelLog  string
+		Template    *templateScripts
 	}{
-		ci,
-		scriptTemplate,
+		ChannelName: ci.ChannelName,
+		ChannelLog:  log.message,
+		Template:    scriptTemplate,
 	}
 
 	static.ChannelTemplate.Execute(w, data)
@@ -103,34 +119,20 @@ func saveChannel(w http.ResponseWriter, r *http.Request, params httprouter.Param
 
 	// Get set data, if any
 	r.ParseForm()
-	// Get the message sent
-	msgStringSlice := r.Form["message"]
 
-	if len(msgStringSlice[0]) == 0 {
+	if len(r.Form["message"][0]) == 0 {
 		fmt.Println("Null message. Nothing being done.")
 	} else {
-		// Prepare to convert msgStringSlice []string to -> []byte
-		var msgBytes []byte = ci.Body
-		// Ensure Body is non-empty.
-		if len(msgBytes) != 0 {
-			// Add a new line to separate this message from other messages.
-			msgBytes = append(msgBytes, '\n')
-		} else {
-			fmt.Println("This is the first line!")
-		}
+		// Convert msgStringSlice []string -> string
+		// TODO: Add user and timestamp information below
+		var msgString = &messageContainer{strings.Join(r.Form["message"], " ")}
 
-		for _, val := range msgStringSlice {
-			msgBytes = append(msgBytes, []byte(val)...)
-		}
+		fmt.Println("The state of channel", ci.ChannelName, "is going to be saved to", ci.LogPath, ".")
 
-		fmt.Println("The state of channel", ci.ChannelName, "is going to be saved.")
-
-		ci.Body = msgBytes
-
-		err := ci.channelLogSave()
+		err := saveMessage(msgString, ci)
 
 		if err != nil {
-			fmt.Println("Problem saving channel ", ci.ChannelName)
+			fmt.Println("Problem saving channel", ci.ChannelName)
 			log.Fatal(err)
 		} else {
 			fmt.Println("Saved the state of channel", ci.ChannelName, "just fine.")

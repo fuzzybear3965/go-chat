@@ -5,16 +5,16 @@
         </style>
     </head>
     <body onload="setFocusToTextBox()">
-        <h1>Welcome to the {{toLower .Channel.ChannelName | printf "%s"}} channel!</h1>
+        <h1>Welcome to the {{toLower .ChannelName | printf "%s"}} channel!</h1>
         <p> Go ahead and start chatting below. Just hit enter to submit your
             text. 
         </p>
 
-        <form action="/c/{{.Channel.ChannelName}}" method="POST" id="chatForm">
+        <form action="/c/{{.ChannelName}}" method="POST" id="chatForm">
             <textarea name="message" id="messageArea" rows="5" cols="40"></textarea>
         </form>
 
-        <pre> {{printf "%s" .Channel.Body}} </pre>
+        <pre> {{.ChannelLog}} </pre>
     </body>
 
     <script>
