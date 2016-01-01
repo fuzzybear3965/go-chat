@@ -61,7 +61,7 @@ func getChannelInfo(urlpath string, routerparams httprouter.Params) *channelInfo
 				fmt.Println("Could not get file info.")
 				log.Fatal(err)
 			} else {
-				if err := os.Chmod(logPath, 660); err != nil {
+				if err := os.Chmod(logPath, 0660); err != nil {
 					fmt.Println("Could not change permissions for file", logPath)
 				}
 				if err := fh.Close(); err != nil {

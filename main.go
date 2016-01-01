@@ -33,7 +33,7 @@ func main() {
 	if err != nil {
 		// TODO: Add this to "syslog" file
 		fmt.Println("go-chat log path doesn't exist... Creating it at: ", logpath)
-		os.MkdirAll(logpath, 660)
+		os.MkdirAll(logpath, 0660)
 	}
 	// Used by other parts of go-chat
 	os.Setenv("LOGPATH", logpath)
