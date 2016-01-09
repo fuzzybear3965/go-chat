@@ -25,15 +25,16 @@ type templateScripts struct {
 
 type messageContainer struct {
 	message string
+	userID  string
 }
 
 // return the history of the channel at any time for the user
-func getLog(ci *channelInfo) *messageContainer {
+func getLog(ci *channelInfo) string {
 	bytes, err := ioutil.ReadFile(ci.LogPath)
 	if err != nil {
 		fmt.Println("Could not read", ci.LogPath)
 	}
-	return &messageContainer{string(bytes)}
+	return string(bytes)
 }
 
 // Open the channel log and return the a channelInfo object
@@ -83,7 +84,7 @@ func saveMessage(mc *messageContainer, ci *channelInfo) error {
 		fmt.Println("Could not open logfile/history located at:", ci.LogPath)
 		log.Fatal(err)
 	}
-	_, err = fh.WriteString(mc.message + string('\n'))
+	_, err = fh.WriteString(mc.userID + ": " + mc.message + string('\n'))
 	return err
 }
 
@@ -104,7 +105,7 @@ func loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Param
 		Template    *templateScripts
 	}{
 		ChannelName: ci.ChannelName,
-		ChannelLog:  log.message,
+		ChannelLog:  log,
 		Template:    scriptTemplate,
 	}
 
@@ -113,21 +114,26 @@ func loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Param
 
 func saveChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	// Save the state of the channel to a file
-	// TODO: Do this only if there are no other clients on the channel.
-	// Otherwise we'll keep the unsaved data in a <chan string>.
+	// TODO: This needs to work with WebSockets so that new messages are pushed
+	// to the client. Right now the user has to refresh the page.
 	ci := getChannelInfo(r.URL.Path, params)
+	s := getSession(w, r)
 
 	// Get set data, if any
 	r.ParseForm()
 
+	var userID string = s.Values["userID"].(string)
+
 	if len(r.Form["message"][0]) == 0 {
 		fmt.Println("Null message. Nothing being done.")
 	} else {
-		// Convert msgStringSlice []string -> string
-		// TODO: Add user and timestamp information below
-		var msgString = &messageContainer{strings.Join(r.Form["message"], " ")}
+		// TODO: Add timestamp information below
+		var msgString = &messageContainer{
+			message: strings.Join(r.Form["message"], " "),
+			userID:  userID,
+		}
 
-		fmt.Println("The state of channel", ci.ChannelName, "is going to be saved to", ci.LogPath, ".")
+		fmt.Println("New message by user: ", msgString.userID, ". The state of channel", ci.ChannelName, "is going to be saved to", ci.LogPath, ".")
 
 		err := saveMessage(msgString, ci)
 

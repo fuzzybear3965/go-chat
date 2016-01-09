@@ -1,39 +1,59 @@
 //go:generate -command asset go run asset.go
-// Generate assets for current directory.
-// Generate static/ assets
-//go:generate asset static/ChannelTemplate.html.tmpl
-//go:generate asset static/login.html.tmpl
+// Generate static/Channel assets
+//go:generate asset static/ChannelTemplate.html
 //go:generate asset static/ChannelTmplCSS.css
 //go:generate asset static/ChannelTmplJS.js
+// Generate static/login assets
+//go:generate asset static/Login.html
+// Generate static/static assets
+//go:generate asset static/Root.html
 
 package main
 
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/user"
+	"time"
 
+	"github.com/gorilla/sessions"
 	"github.com/julienschmidt/httprouter"
 )
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const (
+	letterIdxBits = 6                    // 6 bits to represent a letter index
+	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+)
+
+var cookieStore = sessions.NewCookieStore([]byte("secret passphrase"))
+var src = rand.NewSource(time.Now().UnixNano())
 
 func main() {
 	// Get user's home directory
 	usr, err := user.Current()
 	if err != nil {
+		fmt.Println("Couldn't obtain user information.")
 		log.Fatal(err)
 	}
 
 	// Assign the location for the go-chat logs
 	// TODO: Allow an XML/YAML/JSON file to be parsed for this data
-	var logpath string = usr.HomeDir + "/.go-chat/log"
+	var logpath = usr.HomeDir + "/.go-chat/log"
 	// Check if logpath exists
 	_, err = os.Stat(logpath)
 	if err != nil {
 		// TODO: Add this to "syslog" file
 		fmt.Println("go-chat log path doesn't exist... Creating it at: ", logpath)
-		os.MkdirAll(logpath, 0660)
+		err = os.MkdirAll(logpath, 0660)
+		if err != nil {
+			fmt.Println("Couldn't make go chat log at: ", logpath)
+			log.Fatal(err)
+		}
 	}
 	// Used by other parts of go-chat
 	os.Setenv("LOGPATH", logpath)
@@ -43,11 +63,12 @@ func main() {
 	router.POST("/login", postLogin)
 	router.GET("/c/:channel", loadChannel)
 	router.POST("/c/:channel", saveChannel)
+	// Add route for root
+	router.GET("/", loadRoot)
 	// Add js, css handler
 	router.ServeFiles("/static/*filepath", http.Dir(""))
-	router.GET("/", loadRoot)
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":80", router))
 }
 
 /****** Me implementing the ServeHTTP method such as to use

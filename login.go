@@ -2,20 +2,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/julienschmidt/httprouter"
-	"log"
 	"net/http"
-	"text/template"
+
+	"github.com/fuzzybear3965/go-chat/static"
+	"github.com/julienschmidt/httprouter"
 )
 
 func getLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Println("Method (GET/POST): ", r.Method)
-	tmpl, err := template.ParseFiles("login.gtpl")
-	if err != nil {
-		fmt.Println("Could not load login template.")
-		log.Fatal(err)
-	}
-	tmpl.Execute(w, nil)
+	logintmpl := static.Login
+	logintmpl.Execute(w, nil)
 }
 
 func postLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
