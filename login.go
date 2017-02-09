@@ -10,8 +10,13 @@ import (
 
 func getLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Println("Method (GET/POST): ", r.Method)
-	logintmpl := static.Login
-	logintmpl.Execute(w, nil)
+	data, err := Asset("static/login.html")
+	if err != nil {
+		fmt.Println("Error acquiring root.html asset.")
+	}
+	login_template := template.New("login")
+	login_template.Parse(string(data))
+	login_template.Execute(w, nil)
 }
 
 func postLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

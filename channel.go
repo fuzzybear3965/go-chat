@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/fuzzybear3965/go-chat/static"
 	"github.com/julienschmidt/httprouter"
 	"html/template"
 	"io/ioutil"

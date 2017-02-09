@@ -1,13 +1,4 @@
-//go:generate -command asset go run asset.go
-// Generate static/Channel assets
-//go:generate asset static/ChannelTemplate.html
-//go:generate asset static/ChannelTmplCSS.css
-//go:generate asset static/ChannelTmplJS.js
-// Generate static/login assets
-//go:generate asset static/Login.html
-// Generate static/static assets
-//go:generate asset static/Root.html
-
+//go:generate goversioninfo
 package main
 
 import (
@@ -59,10 +50,10 @@ func main() {
 	os.Setenv("LOGPATH", logpath)
 
 	router := httprouter.New()
-	router.GET("/login", getLogin)
-	router.POST("/login", postLogin)
-	router.GET("/c/:channel", loadChannel)
-	router.POST("/c/:channel", saveChannel)
+	//router.GET("/login", getLogin)
+	//router.POST("/login", postLogin)
+	//router.GET("/c/:channel", loadChannel)
+	//router.POST("/c/:channel", saveChannel)
 	// Add route for root
 	router.GET("/", loadRoot)
 	// Add js, css handler

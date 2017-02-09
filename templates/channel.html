@@ -1,7 +1,7 @@
 <html>
     <head>
         <style>
-            {{.Template.ChannelTmplCSS}}
+            {{.Template.css}}
         </style>
     </head>
     <body onload="setFocusToTextBox()">
@@ -14,7 +14,7 @@
             <textarea name="message" id="messageArea" rows="5" cols="40"></textarea>
         </form>
 
-        <pre> {{.ChannelLog}} </pre>
+        <pre> {{.log}} </pre>
     </body>
 
     <script>
