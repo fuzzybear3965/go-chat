@@ -2,15 +2,14 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-
-	"github.com/fuzzybear3965/go-chat/static"
 	"github.com/julienschmidt/httprouter"
+	"html/template"
+	"net/http"
 )
 
 func getLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Println("Method (GET/POST): ", r.Method)
-	data, err := Asset("static/login.html")
+	data, err := Asset("templates/login.html")
 	if err != nil {
 		fmt.Println("Error acquiring root.html asset.")
 	}

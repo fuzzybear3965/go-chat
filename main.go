@@ -1,3 +1,4 @@
+//go:generate go-bindata -o assets.go assets templates
 //go:generate goversioninfo
 package main
 
@@ -50,10 +51,10 @@ func main() {
 	os.Setenv("LOGPATH", logpath)
 
 	router := httprouter.New()
-	//router.GET("/login", getLogin)
-	//router.POST("/login", postLogin)
-	//router.GET("/c/:channel", loadChannel)
-	//router.POST("/c/:channel", saveChannel)
+	router.GET("/login", getLogin)
+	router.POST("/login", postLogin)
+	router.GET("/c/:channel", loadChannel)
+	router.POST("/c/:channel", saveChannel)
 	// Add route for root
 	router.GET("/", loadRoot)
 	// Add js, css handler

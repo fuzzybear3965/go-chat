@@ -1,1 +1,5 @@
-*.swp
+*.sw?
+assets.go
+go-chat.exe
+versioninfo.json
+resource.syso

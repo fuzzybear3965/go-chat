@@ -1,23 +1,23 @@
 <html>
     <head>
         <style>
-            {{.Template.css}}
+            {{.Template.CSS}}
         </style>
     </head>
     <body onload="setFocusToTextBox()">
-        <h1>Welcome to the {{toLower .ChannelName | printf "%s"}} channel!</h1>
+        <h1>Welcome to the {{.ChannelName | printf "%s"}} channel!</h1>
         <p> Go ahead and start chatting below. Just hit enter to submit your
-            text. 
+            text.
         </p>
 
         <form action="/c/{{.ChannelName}}" method="POST" id="chatForm">
             <textarea name="message" id="messageArea" rows="5" cols="40"></textarea>
         </form>
 
-        <pre> {{.log}} </pre>
+        <pre> {{.ChannelLog}} </pre>
     </body>
 
     <script>
-        {{.Template.ChannelTmplJS}}
+        {{.Template.JS}}
     </script>
 </html>

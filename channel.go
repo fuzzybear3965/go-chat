@@ -17,9 +17,9 @@ type channelInfo struct {
 }
 
 // Create a struct to hold the JS and CSS templates
-type templateScripts struct {
-	ChannelTmplJS  template.JS
-	ChannelTmplCSS template.CSS
+type templateAssets struct {
+	CSS string
+	JS  string
 }
 
 type messageContainer struct {
@@ -90,25 +90,39 @@ func saveMessage(mc *messageContainer, ci *channelInfo) error {
 func loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	// Get the complete URL path into an array
 	ci := getChannelInfo(r.URL.Path, params)
-	scriptTemplate := &templateScripts{
-		ChannelTmplJS:  static.ChannelTmplJS,
-		ChannelTmplCSS: static.ChannelTmplCSS,
+	js_asset, _ := Asset("assets/channel.js")
+	css_asset, _ := Asset("assets/channel.css")
+	scriptTemplate := &templateAssets{
+		JS:  string(js_asset),
+		CSS: string(css_asset),
 	}
 
 	fmt.Println("Channel", ci.ChannelName, "has been requested.")
 
 	log := getLog(ci)
-	data := struct {
+	template_data := struct {
 		ChannelName string
 		ChannelLog  string
-		Template    *templateScripts
+		Template    *templateAssets
 	}{
 		ChannelName: ci.ChannelName,
 		ChannelLog:  log,
 		Template:    scriptTemplate,
 	}
-
-	static.ChannelTemplate.Execute(w, data)
+	data, err := Asset("templates/channel.html")
+	if err != nil {
+		fmt.Println("Error acquiring channel.html asset.")
+	}
+	fmt.Println(string(data))
+	channel_template := template.New("channel")
+	channel_template, err = channel_template.Parse(string(data))
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = channel_template.Execute(w, template_data)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func saveChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
