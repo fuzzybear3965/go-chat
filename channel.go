@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
 	"html/template"
 	"io/ioutil"
@@ -11,6 +13,12 @@ import (
 	"strings"
 )
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin:     func(r *http.Request) bool { return true },
+}
+
 type channelInfo struct {
 	ChannelName string
 	LogPath     string
@@ -19,7 +27,7 @@ type channelInfo struct {
 // Create a struct to hold the JS and CSS templates
 type templateAssets struct {
 	CSS string
-	JS  string
+	JS  template.JS
 }
 
 type messageContainer struct {
@@ -88,12 +96,28 @@ func saveMessage(mc *messageContainer, ci *channelInfo) error {
 }
 
 func loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	if r.Header["Connection"][0] == "Upgrade" {
+		fmt.Println("upgrading connection.")
+		c, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			fmt.Println(err)
+			fmt.Println("had an error upgrading")
+		}
+		for {
+			_, m, err := c.ReadMessage()
+			fmt.Println(string(m))
+			if err != nil {
+				fmt.Println("Error reading message.")
+				fmt.Println(err)
+			}
+		}
+	}
 	// Get the complete URL path into an array
 	ci := getChannelInfo(r.URL.Path, params)
 	js_asset, _ := Asset("assets/channel.js")
 	css_asset, _ := Asset("assets/channel.css")
 	scriptTemplate := &templateAssets{
-		JS:  string(js_asset),
+		JS:  template.JS(js_asset),
 		CSS: string(css_asset),
 	}
 
@@ -113,7 +137,17 @@ func loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Param
 	if err != nil {
 		fmt.Println("Error acquiring channel.html asset.")
 	}
-	fmt.Println(string(data))
+	//fmt.Println(string(data))
+	js_template := template.New("channel_js")
+	js_template, err = js_template.Parse(string(scriptTemplate.JS))
+	if err != nil {
+		fmt.Println("Error parsing JS template.")
+		fmt.Println(err)
+	}
+	var b bytes.Buffer
+	err = js_template.Execute(&b, template_data)
+	template_data.Template.JS = template.JS(b.String())
+
 	channel_template := template.New("channel")
 	channel_template, err = channel_template.Parse(string(data))
 	if err != nil {

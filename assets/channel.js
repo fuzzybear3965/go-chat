@@ -18,3 +18,10 @@ function keyPress(e) {
 function setFocusToTextBox(){
     document.getElementById("messageArea").focus();
 }
+
+var ws = new WebSocket("ws://127.0.0.1/c/{{.ChannelName}}")
+
+window.onbeforeunload = function() {
+    websocket.onclose = function () {}; // disable onclose handler first
+    websocket.close()
+};
