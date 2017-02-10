@@ -7,14 +7,18 @@ try {
     textarea.attachEvent("onkeydown", keypress);
 }
 
-var ws = new WebSocket("ws" + document.URL.slice(4,document.URL.length))
+if (document.URL.includes("https")) {
+   var ws = new WebSocket("ws" + document.URL.slice(5,document.URL.length))
+} else {
+   var ws = new WebSocket("ws" + document.URL.slice(4,document.URL.length))
+}
 
-ws.addEventListener("message", wsHandler(event))
+ws.addEventListener("message", wsHandler)
 
 // Use function hoisting
 function keyPress(e) {
     if (e.keyCode === 13) {
-        chatForm.submit()
+       ws.send(textarea.value)
     } else {
         return;
     }

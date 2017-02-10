@@ -26,7 +26,7 @@ func (s *serverContext) rootHandler(w http.ResponseWriter, r *http.Request, _ ht
 
 // /c/:chan:
 func (s *serverContext) loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	if val, ok := r.Header["Connection"]; val[0] == "Upgrade" && ok {
+	if websocket.IsWebSocketUpgrade(r) {
 		s.users = map[string]*appUser{"a": &appUser{c: &conn{authenticated: false, websocket: nil}, channels: nil}}
 		s.users["a"].c.upgrade(w, r)
 		fmt.Printf("%+v", s)
