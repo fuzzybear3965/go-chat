@@ -7,6 +7,11 @@ try {
     textarea.attachEvent("onkeydown", keypress);
 }
 
+var ws = new WebSocket("ws" + document.URL.slice(4,document.URL.length))
+
+ws.addEventListener("message", wsHandler(event))
+
+// Use function hoisting
 function keyPress(e) {
     if (e.keyCode === 13) {
         chatForm.submit()
@@ -19,9 +24,6 @@ function setFocusToTextBox(){
     document.getElementById("messageArea").focus();
 }
 
-var ws = new WebSocket("ws://127.0.0.1/c/{{.ChannelName}}")
-
-window.onbeforeunload = function() {
-    ws.onclose = function () {}; // disable onclose handler first
-    ws.close()
-};
+function wsHandler(evt) {
+   console.log(evt)
+}

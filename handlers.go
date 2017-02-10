@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bytes"
+	//"bytes"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
@@ -21,6 +21,7 @@ func (s *serverContext) rootHandler(w http.ResponseWriter, r *http.Request, _ ht
 	root_template := template.New("root")
 	root_template.Parse(string(data))
 	root_template.Execute(w, nil)
+	http.FileServer(http.Dir("templates/root.html"))
 }
 
 // /c/:chan:
@@ -53,15 +54,6 @@ func (s *serverContext) loadChannel(w http.ResponseWriter, r *http.Request, para
 	if err != nil {
 		fmt.Println("Error acquiring channel.html asset.")
 	}
-	js_template := template.New("channel_js")
-	js_template, err = js_template.Parse(string(scriptTemplate.JS))
-	if err != nil {
-		fmt.Println("Error parsing JS template.")
-		fmt.Println(err)
-	}
-	var b bytes.Buffer
-	err = js_template.Execute(&b, template_data)
-	template_data.Template.JS = template.JS(b.String())
 
 	channel_template := template.New("channel")
 	channel_template, err = channel_template.Parse(string(data))

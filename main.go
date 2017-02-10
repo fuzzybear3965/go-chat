@@ -57,7 +57,7 @@ func main() {
 	// Add route for root
 	router.GET("/", sc.rootHandler)
 	// Add js, css handler
-	router.ServeFiles("/static/*filepath", http.Dir(""))
+	router.ServeFiles("/assets/*filepath", http.Dir("./assets"))
 
 	log.Fatal(http.ListenAndServe(":80", router))
 }

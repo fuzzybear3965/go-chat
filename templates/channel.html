@@ -1,8 +1,8 @@
+<!DOCTYPE html>
 <html>
     <head>
-        <style>
-            {{.Template.CSS}}
-        </style>
+        <title>{{.ChannelName}}</title>
+        <link rel="stylesheet" href="/assets/channel.css">
     </head>
     <body onload="setFocusToTextBox()">
         <h1>Welcome to the {{.ChannelName | printf "%s"}} channel!</h1>
@@ -15,9 +15,6 @@
         </form>
 
         <pre> {{.ChannelLog}} </pre>
+        <script src="/assets/channel.js"></script>
     </body>
-
-    <script>
-        {{.Template.JS }}
-    </script>
 </html>
