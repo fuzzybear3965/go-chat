@@ -47,31 +47,17 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-	// Used by other parts of go-chat
-	os.Setenv("LOGPATH", logpath)
+	sc := &serverContext{port: 80, users: nil, logdir: logpath}
 
 	router := httprouter.New()
-	router.GET("/login", getLogin)
-	router.POST("/login", postLogin)
-	router.GET("/c/:channel", loadChannel)
-	router.POST("/c/:channel", saveChannel)
+	//router.GET("/login", getLogin)
+	//router.POST("/login", postLogin)
+	//router.GET("/c/:channel", loadChannel)
+	//router.POST("/c/:channel", saveChannel)
 	// Add route for root
-	router.GET("/", loadRoot)
+	router.GET("/", sc.rootHandler)
 	// Add js, css handler
 	router.ServeFiles("/static/*filepath", http.Dir(""))
 
 	log.Fatal(http.ListenAndServe(":80", router))
 }
-
-/****** Me implementing the ServeHTTP method such as to use
-http.Handle(PATH string, SOMEFUNC function)
-type fooHandler func(http.ResponseWriter, *http.Request)
-
-var fooFunction fooHandler = func(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, foo")
-}
-
-func (f fooHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	f(w, r)
-}
-*****/

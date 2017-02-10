@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func loadRoot(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (s *serverContext) rootHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Println("Method (GET): ", r.Method)
 	data, err := Asset("templates/root.html")
 	if err != nil {

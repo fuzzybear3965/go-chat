@@ -96,22 +96,9 @@ func saveMessage(mc *messageContainer, ci *channelInfo) error {
 }
 
 func loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	if r.Header["Connection"][0] == "Upgrade" {
-		fmt.Println("upgrading connection.")
-		c, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("had an error upgrading")
-		}
-		for {
-			_, m, err := c.ReadMessage()
-			fmt.Println(string(m))
-			if err != nil {
-				fmt.Println("Error reading message.")
-				fmt.Println(err)
-			}
-		}
-	}
+	//if r.Header["Connection"][0] == "Upgrade" {
+	//upgrade(w, r)
+	//}
 	// Get the complete URL path into an array
 	ci := getChannelInfo(r.URL.Path, params)
 	js_asset, _ := Asset("assets/channel.js")
