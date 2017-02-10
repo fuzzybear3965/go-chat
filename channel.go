@@ -45,7 +45,7 @@ func getLog(ci *channelInfo) string {
 }
 
 // Open the channel log and return the a channelInfo object
-func getChannelInfo(urlpath string, routerparams httprouter.Params) *channelInfo {
+func (s *serverContext) getChannelInfo(urlpath string, routerparams httprouter.Params) *channelInfo {
 	// Parse urlpath into different /foo/bar -> ["foo","bar"]
 	pathArray := strings.Split(urlpath, "/")
 	channelName := pathArray[len(pathArray)-1]
@@ -55,7 +55,7 @@ func getChannelInfo(urlpath string, routerparams httprouter.Params) *channelInfo
 	}
 
 	logName := channelName + ".txt"
-	logPath := os.Getenv("LOGPATH") + "/" + logName
+	logPath := s.logdir + "/" + logName
 
 	// Check if filePath exists
 	_, err := os.Stat(logPath)
@@ -95,12 +95,14 @@ func saveMessage(mc *messageContainer, ci *channelInfo) error {
 	return err
 }
 
-func loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	//if r.Header["Connection"][0] == "Upgrade" {
-	//upgrade(w, r)
-	//}
+func (s *serverContext) loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	if val, ok := r.Header["Connection"]; val[0] == "Upgrade" && ok {
+		s.users = map[string]*appUser{"a": &appUser{c: &conn{authenticated: false, websocket: nil}, channels: nil}}
+		s.users["a"].c.upgrade(w, r)
+		fmt.Printf("%+v", s)
+	}
 	// Get the complete URL path into an array
-	ci := getChannelInfo(r.URL.Path, params)
+	ci := s.getChannelInfo(r.URL.Path, params)
 	js_asset, _ := Asset("assets/channel.js")
 	css_asset, _ := Asset("assets/channel.css")
 	scriptTemplate := &templateAssets{
@@ -146,12 +148,14 @@ func loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Param
 	}
 }
 
-func saveChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (sc *serverContext) saveChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	// Save the state of the channel to a file
 	// TODO: This needs to work with WebSockets so that new messages are pushed
 	// to the client. Right now the user has to refresh the page.
-	ci := getChannelInfo(r.URL.Path, params)
+	ci := sc.getChannelInfo(r.URL.Path, params)
 	s := getSession(w, r)
+	fmt.Printf("%+v", sc)
+	sc.users["a"].c.websocket.WriteMessage(websocket.TextMessage, []byte("hey"))
 
 	// Get set data, if any
 	r.ParseForm()
@@ -179,5 +183,5 @@ func saveChannel(w http.ResponseWriter, r *http.Request, params httprouter.Param
 		}
 	}
 	// Reload the channel for the user.
-	loadChannel(w, r, params)
+	sc.loadChannel(w, r, params)
 }

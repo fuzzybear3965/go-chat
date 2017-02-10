@@ -50,10 +50,10 @@ func main() {
 	sc := &serverContext{port: 80, users: nil, logdir: logpath}
 
 	router := httprouter.New()
-	//router.GET("/login", getLogin)
-	//router.POST("/login", postLogin)
-	//router.GET("/c/:channel", loadChannel)
-	//router.POST("/c/:channel", saveChannel)
+	router.GET("/login", sc.getLogin)
+	router.POST("/login", sc.postLogin)
+	router.GET("/c/:channel", sc.loadChannel)
+	router.POST("/c/:channel", sc.saveChannel)
 	// Add route for root
 	router.GET("/", sc.rootHandler)
 	// Add js, css handler

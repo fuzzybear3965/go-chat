@@ -22,6 +22,6 @@ function setFocusToTextBox(){
 var ws = new WebSocket("ws://127.0.0.1/c/{{.ChannelName}}")
 
 window.onbeforeunload = function() {
-    websocket.onclose = function () {}; // disable onclose handler first
-    websocket.close()
+    ws.onclose = function () {}; // disable onclose handler first
+    ws.close()
 };

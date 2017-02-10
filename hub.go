@@ -2,14 +2,11 @@ package main
 
 // user is taken by os/user
 type appUser struct {
-	username string
+	c        *conn
+	channels []string
 }
 
-//func addUser(userList User) chan User {
-//return userList
-//}
-
-type appUserList []appUser
+type appUserList map[string]*appUser
 
 type serverContext struct {
 	port   int

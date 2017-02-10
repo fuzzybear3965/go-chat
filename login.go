@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func getLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (s *serverContext) getLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Println("Method (GET/POST): ", r.Method)
 	data, err := Asset("templates/login.html")
 	if err != nil {
@@ -18,7 +18,7 @@ func getLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	login_template.Execute(w, nil)
 }
 
-func postLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (s *serverContext) postLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Println("Method (GET/POST): ", r.Method)
 	r.ParseForm()
 	if r.Form["username"][0] == "" {
