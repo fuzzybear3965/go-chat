@@ -11,8 +11,9 @@ import (
 	"strings"
 )
 
+// /
 func (s *serverContext) rootHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Println("Method (GET): ", r.Method, r.URL)
+	accessLog(r)
 	data, err := Asset("templates/root.html")
 	if err != nil {
 		fmt.Println("Error acquiring root.html asset.")
@@ -22,6 +23,7 @@ func (s *serverContext) rootHandler(w http.ResponseWriter, r *http.Request, _ ht
 	root_template.Execute(w, nil)
 }
 
+// /c/:chan:
 func (s *serverContext) loadChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	if val, ok := r.Header["Connection"]; val[0] == "Upgrade" && ok {
 		s.users = map[string]*appUser{"a": &appUser{c: &conn{authenticated: false, websocket: nil}, channels: nil}}
@@ -37,8 +39,6 @@ func (s *serverContext) loadChannel(w http.ResponseWriter, r *http.Request, para
 		CSS: string(css_asset),
 	}
 
-	fmt.Println("Channel", ci.ChannelName, "has been requested.")
-
 	log := getLog(ci)
 	template_data := struct {
 		ChannelName string
@@ -53,7 +53,6 @@ func (s *serverContext) loadChannel(w http.ResponseWriter, r *http.Request, para
 	if err != nil {
 		fmt.Println("Error acquiring channel.html asset.")
 	}
-	//fmt.Println(string(data))
 	js_template := template.New("channel_js")
 	js_template, err = js_template.Parse(string(scriptTemplate.JS))
 	if err != nil {
@@ -75,7 +74,9 @@ func (s *serverContext) loadChannel(w http.ResponseWriter, r *http.Request, para
 	}
 }
 
+// /c/:chan:
 func (sc *serverContext) saveChannel(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	accessLog(r)
 	// Save the state of the channel to a file
 	// TODO: This needs to work with WebSockets so that new messages are pushed
 	// to the client. Right now the user has to refresh the page.
@@ -83,7 +84,6 @@ func (sc *serverContext) saveChannel(w http.ResponseWriter, r *http.Request, par
 	s := getSession(w, r)
 	fmt.Printf("%+v", sc)
 	sc.users["a"].c.websocket.WriteMessage(websocket.TextMessage, []byte("hey"))
-
 	// Get set data, if any
 	r.ParseForm()
 
@@ -113,8 +113,9 @@ func (sc *serverContext) saveChannel(w http.ResponseWriter, r *http.Request, par
 	sc.loadChannel(w, r, params)
 }
 
+// /login
 func (s *serverContext) getLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Println("Method (GET/POST): ", r.Method)
+	accessLog(r)
 	data, err := Asset("templates/login.html")
 	if err != nil {
 		fmt.Println("Error acquiring root.html asset.")
@@ -124,8 +125,9 @@ func (s *serverContext) getLogin(w http.ResponseWriter, r *http.Request, _ httpr
 	login_template.Execute(w, nil)
 }
 
+// /login
 func (s *serverContext) postLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Println("Method (GET/POST): ", r.Method)
+	accessLog(r)
 	r.ParseForm()
 	if r.Form["username"][0] == "" {
 		fmt.Fprint(w, "Please enter a username.")
@@ -133,4 +135,8 @@ func (s *serverContext) postLogin(w http.ResponseWriter, r *http.Request, _ http
 		fmt.Println("username: ", r.PostForm["username"])
 		fmt.Println("password: ", r.PostForm["password"])
 	}
+}
+
+func accessLog(r *http.Request) {
+	fmt.Println("Accessed", r.URL, "with method", r.Method, ".")
 }
