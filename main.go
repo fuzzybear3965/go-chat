@@ -25,6 +25,10 @@ const (
 var cookieStore = sessions.NewCookieStore([]byte("secret passphrase"))
 var src = rand.NewSource(time.Now().UnixNano())
 
+func accessLog(r *http.Request) {
+	fmt.Println("Accessed", r.URL, "with method", r.Method, ".")
+}
+
 func main() {
 	// Get user's home directory
 	usr, err := user.Current()

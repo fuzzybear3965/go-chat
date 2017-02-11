@@ -2,21 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
 	"html/template"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"strings"
 )
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin:     func(r *http.Request) bool { return true },
-}
 
 type channelInfo struct {
 	ChannelName string

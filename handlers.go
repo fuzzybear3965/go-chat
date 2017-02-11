@@ -1,7 +1,6 @@
 package main
 
 import (
-	//"bytes"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
@@ -127,8 +126,4 @@ func (s *serverContext) postLogin(w http.ResponseWriter, r *http.Request, _ http
 		fmt.Println("username: ", r.PostForm["username"])
 		fmt.Println("password: ", r.PostForm["password"])
 	}
-}
-
-func accessLog(r *http.Request) {
-	fmt.Println("Accessed", r.URL, "with method", r.Method, ".")
 }
