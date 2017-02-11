@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
-	//"github.com/julienschmidt/httprouter"
 	"net/http"
 )
 
